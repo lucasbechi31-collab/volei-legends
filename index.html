@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080b18">
+<title>Vôlei Legends — Protótipo</title>
+<style>
+:root{--bg:#080b18;--panel:#111831;--blue:#27d7ff;--purple:#9b5cff;--white:#f4f7ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--white);font-family:system-ui,Arial,sans-serif}
+header{text-align:center;padding:20px 12px;background:linear-gradient(120deg,#081225,#19113b);border-bottom:1px solid #29375f}
+h1{font-size:clamp(28px,7vw,46px);margin:0;font-weight:1000;font-style:italic;text-transform:uppercase}h1 span{color:var(--blue);text-shadow:0 0 18px #27d7ff66}header p{margin:6px 0 0;color:#b6c7e8}
+.wrap{max-width:1000px;margin:auto;padding:12px;display:grid;gap:12px}.card{background:linear-gradient(145deg,#111a33,#0d1226);border:1px solid #26365d;border-radius:16px;padding:13px}
+.top{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#b9c9eb;margin-bottom:10px}.pill{border:1px solid #34517d;border-radius:99px;padding:5px 9px}
+canvas{width:100%;height:auto;display:block;border-radius:12px;background:#101b3a}
+.scorebar{display:flex;justify-content:center;align-items:center;gap:22px;margin:10px}.team{text-align:center;font-size:12px;color:#bdc9e6}.score{font-size:28px;font-weight:900}
+.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+button{font:inherit;font-weight:800;color:white;background:linear-gradient(135deg,#1b3260,#30205d);border:1px solid #405b92;border-radius:12px;padding:12px 5px;min-height:46px;cursor:pointer;touch-action:manipulation}
+button:active{transform:scale(.97)}button.primary{background:linear-gradient(135deg,#087ba8,#6738b5)}
+.help{font-size:12px;color:#9fb0d3;line-height:1.6}.message{text-align:center;color:#ffda74;font-size:13px;min-height:22px;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.stat{padding:10px;background:#ffffff08;border:1px solid #ffffff12;border-radius:12px;font-size:12px}.stat b{display:block;color:var(--blue);margin-bottom:3px}
+@media(min-width:760px){.wrap{grid-template-columns:1.4fr .8fr}.game{grid-row:span 2}}
+footer{text-align:center;color:#697da7;font-size:11px;padding:8px 12px 20px}
+</style>
+</head>
+<body>
+<header><h1>Vôlei <span>Legends</span></h1><p>Entre em quadra. Treine. Salte. Faça o ponto!</p></header>
+<div class="wrap">
+<section class="card game">
+<div class="top"><span class="pill">🏐 PROTÓTIPO JOGÁVEL</span><span>Treino individual</span></div>
+<canvas id="court" width="900" height="520" aria-label="Quadra de vôlei"></canvas>
+<div class="scorebar"><div class="team">VOCÊ<div class="score" id="ps">0</div></div><div style="color:#6079ac;font-weight:900">VS</div><div class="team">CPU<div class="score" id="cs">0</div></div></div>
+<div class="message" id="msg">Toque em SAQUE para começar!</div>
+<div class="controls">
+<button id="left">◀ Mover</button><button id="jump">⬆ Pular</button><button id="right">Mover ▶</button>
+<button class="primary" id="serve">🏐 SAQUE</button><button id="receive">👐 RECEBER</button><button id="spike">⚡ CORTAR</button>
+</div>
+<p class="help">Celular: use os botões. Computador: A/D ou setas para mover, Espaço para pular, J para saque, K para receber e L para cortar. Este é um protótipo 2D, não o jogo 3D completo do Roblox.</p>
+</section>
+<section class="card"><h3>Seu jogador</h3><div class="stats">
+<div class="stat"><b>⭐ Nível</b><span id="level">1</span></div><div class="stat"><b>🏆 Treino</b><span id="xp">0 XP</span></div>
+<div class="stat"><b>💥 Cortadas</b><span id="spikes">0</span></div><div class="stat"><b>🛡️ Recepções</b><span id="rec">0</span></div></div>
+<button id="reset" style="width:100%;margin-top:10px">↻ Reiniciar partida</button></section>
+<section class="card"><h3>Como jogar</h3><p class="help">1. Toque em SAQUE para colocar a bola em jogo.<br>2. Mova-se para chegar perto da bola.<br>3. Use RECEBER para defender e pule perto da bola para CORTAR.<br>4. Se a bola cair no lado adversário, você marca ponto.</p></section>
+</div><footer>Protótipo independente inspirado no gênero de jogos de vôlei. Não afiliado ao Roblox nem aos criadores de Volleyball Legends.</footer>
+<script>
+(()=>{const c=document.querySelector('#court'),x=c.getContext('2d'),$=id=>document.getElementById(id),W=c.width,H=c.height;
+let p={x:220,y:390,vy:0,ground:390,jump:false},cpu={x:690,y:390},b={x:220,y:350,vx:0,vy:0,r:13,active:false},ps=0,cs=0,xp=0,sp=0,rec=0,keys={};
+function say(t){$('msg').textContent=t}function resetBall(){b={x:p.x,y:p.y-32,vx:0,vy:0,r:13,active:false}}
+function serve(){if(b.active)return;b.x=p.x;b.y=p.y-32;b.vx=5.4;b.vy=-8.2;b.active=true;say('Saque lançado! Prepare-se para a jogada.')}
+function score(player){if(player){ps++;xp+=20;say('PONTO SEU! +20 XP 🔥')}else{cs++;say('Ponto da CPU. Tente novamente!')}$('ps').textContent=ps;$('cs').textContent=cs;stats();resetBall()}
+function stats(){$('xp').textContent=xp+' XP';$('level').textContent=1+Math.floor(xp/100);$('spikes').textContent=sp;$('rec').textContent=rec}
+function move(d){p.x=Math.max(45,Math.min(425,p.x+d))}
+function jump(){if(!p.jump){p.vy=-13;p.jump=true;say('Salto! Tente cortar perto da bola.')}}
+function receive(){if(!b.active){say('Toque em SAQUE primeiro.');return}if(Math.hypot(b.x-p.x,b.y-(p.y-20))<105){b.vx=Math.max(3.5,Math.abs(b.vx)+1.4);b.vy=-7.5;rec++;xp+=5;stats();say('Boa recepção! +5 XP')}else say('Chegue mais perto da bola!')}
+function spike(){if(!b.active){say('Toque em SAQUE primeiro.');return}if(Math.hypot(b.x-p.x,b.y-(p.y-35))<130&&(p.jump||p.y<p.ground)){b.vx=9.5;b.vy=-9;sp++;xp+=15;stats();say('CORTADA! +15 XP 🔥')}else say('Aproxime-se e pule para cortar!')}
+function drawPlayer(a,color,num){x.fillStyle='#0005';x.beginPath();x.ellipse(a.x,a.ground+8,27,7,0,0,Math.PI*2);x.fill();x.fillStyle=color;x.fillRect(a.x-18,a.y-46,36,42);x.fillStyle='#f2c7a0';x.beginPath();x.arc(a.x,a.y-58,15,0,Math.PI*2);x.fill();x.fillStyle='#11182d';x.fillRect(a.x-15,a.y-72,30,10);x.fillStyle='white';x.font='bold 15px system-ui';x.textAlign='center';x.fillText(num,a.x,a.y-20);x.strokeStyle=color;x.lineWidth=8;x.lineCap='round';x.beginPath();x.moveTo(a.x-12,a.y-38);x.lineTo(a.x-25,a.y-18);x.moveTo(a.x+12,a.y-38);x.lineTo(a.x+25,a.y-18);x.stroke();x.strokeStyle='#11182d';x.lineWidth=9;x.beginPath();x.moveTo(a.x-9,a.y-4);x.lineTo(a.x-14,a.y+7);x.moveTo(a.x+9,a.y-4);x.lineTo(a.x+14,a.y+7);x.stroke()}
+function draw(){x.clearRect(0,0,W,H);let g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#101b3b');g.addColorStop(1,'#1c2860');x.fillStyle=g;x.fillRect(0,0,W,H);for(let i=0;i<24;i++){x.strokeStyle='#64a0ff12';x.beginPath();x.moveTo(i*42,0);x.lineTo(i*42,H);x.stroke()}x.fillStyle='#233e78';x.fillRect(35,245,830,225);x.strokeStyle='#5d8cff';x.lineWidth=3;x.strokeRect(35,245,830,225);x.strokeStyle='#4668b0';x.lineWidth=2;x.beginPath();x.moveTo(450,245);x.lineTo(450,470);x.stroke();x.fillStyle='#121a35';x.fillRect(442,145,16,325);x.fillStyle='#c6eaff';x.fillRect(438,160,24,9);x.strokeStyle='#8ab5ff';x.lineWidth=1;for(let y=172;y<245;y+=9){x.beginPath();x.moveTo(438,y);x.lineTo(462,y);x.stroke()}drawPlayer(p,'#24c8ff','10');drawPlayer(cpu,'#b66aff','7');x.fillStyle='white';x.beginPath();x.arc(b.x,b.y,b.r,0,Math.PI*2);x.fill();x.strokeStyle='#1b4c8e';x.lineWidth=3;x.beginPath();x.arc(b.x,b.y,b.r*.75,-.7,1.8);x.stroke();x.beginPath();x.arc(b.x,b.y,b.r*.75,2.3,4.8);x.stroke();x.fillStyle='#dceaff';x.font='bold 14px system-ui';x.textAlign='left';x.fillText('SEU LADO',55,275);x.textAlign='right';x.fillText('LADO CPU',845,275)}
+function loop(){if(keys.ArrowLeft||keys.a)move(-3.8);if(keys.ArrowRight||keys.d)move(3.8);if(p.jump){p.y+=p.vy;p.vy+=.65;if(p.y>=p.ground){p.y=p.ground;p.vy=0;p.jump=false}}if(b.active){b.x+=b.vx;b.y+=b.vy;b.vy+=.22;if(b.x>875){b.x=875;b.vx=-Math.abs(b.vx)*.8}if(b.x<25){b.x=25;b.vx=Math.abs(b.vx)*.8}if(b.x>500){cpu.x+=(b.x-cpu.x)*.018;if(Math.abs(b.x-cpu.x)<70&&b.y>cpu.y-90&&b.y<cpu.y+10){b.vx=-Math.abs(b.vx)*.75;b.vy=-6}}if(b.y>452){if(b.x>450)score(true);else score(false)}}draw();requestAnimationFrame(loop)}
+$('serve').onclick=serve;$('jump').onclick=jump;$('receive').onclick=receive;$('spike').onclick=spike;$('left').onpointerdown=()=>move(-24);$('right').onpointerdown=()=>move(24);
+$('reset').onclick=()=>{ps=cs=xp=sp=rec=0;p.x=220;p.y=p.ground;p.jump=false;cpu.x=690;$('ps').textContent='0';$('cs').textContent='0';stats();resetBall();say('Partida reiniciada! Toque em SAQUE.')};
+window.addEventListener('keydown',e=>{keys[e.key]=true;if(e.code==='Space'){e.preventDefault();jump()}if(e.key.toLowerCase()==='j')serve();if(e.key.toLowerCase()==='k')receive();if(e.key.toLowerCase()==='l')spike()});window.addEventListener('keyup',e=>keys[e.key]=false);draw();loop()})();
+</script>
+</body></html>
